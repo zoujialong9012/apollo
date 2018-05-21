@@ -25,11 +25,9 @@
 #include "modules/common/configs/vehicle_config_helper.h"
 #include "modules/common/util/json_util.h"
 #include "modules/common/util/map_util.h"
+#include "modules/dreamview/backend/common/dreamview_gflags.h"
 #include "modules/dreamview/backend/hmi/hmi_worker.h"
 #include "modules/monitor/proto/system_status.pb.h"
-
-DEFINE_double(system_status_lifetime_seconds, 30,
-              "Lifetime of a valid SystemStatus message.");
 
 namespace apollo {
 namespace dreamview {
@@ -38,9 +36,7 @@ using apollo::canbus::Chassis;
 using apollo::common::VehicleConfigHelper;
 using apollo::common::adapter::AdapterManager;
 using apollo::common::time::Clock;
-using apollo::common::util::FindLinkedPtrOrNull;
 using apollo::common::util::JsonUtil;
-using std::make_unique;
 using Json = WebSocketHandler::Json;
 using RLock = boost::shared_lock<boost::shared_mutex>;
 

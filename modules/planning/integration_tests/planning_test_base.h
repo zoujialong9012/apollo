@@ -38,12 +38,24 @@ namespace planning {
 
 using common::adapter::AdapterManager;
 
-#define RUN_GOLDEN_TEST(sub_case_num)                                         \
-  {                                                                           \
-    const ::testing::TestInfo* const test_info =                              \
-        ::testing::UnitTest::GetInstance()->current_test_info();              \
-    bool run_planning_success = RunPlanning(test_info->name(), sub_case_num); \
-    EXPECT_TRUE(run_planning_success);                                        \
+#define RUN_GOLDEN_TEST(sub_case_num)                                        \
+  {                                                                          \
+    const ::testing::TestInfo* const test_info =                             \
+        ::testing::UnitTest::GetInstance()->current_test_info();             \
+    bool no_trajectory_point = false;                                        \
+    bool run_planning_success = RunPlanning(test_info->name(), sub_case_num, \
+                                            no_trajectory_point);            \
+    EXPECT_TRUE(run_planning_success);                                       \
+  }
+
+#define RUN_GOLDEN_TEST_DECISION(sub_case_num)                               \
+  {                                                                          \
+    const ::testing::TestInfo* const test_info =                             \
+        ::testing::UnitTest::GetInstance()->current_test_info();             \
+    bool no_trajectory_point = true;                                         \
+    bool run_planning_success = RunPlanning(test_info->name(), sub_case_num, \
+                                            no_trajectory_point);            \
+    EXPECT_TRUE(run_planning_success);                                       \
   }
 
 #define TMAIN                                            \
@@ -77,27 +89,20 @@ class PlanningTestBase : public ::testing::Test {
    * @return true if planning is success. The ADCTrajectory will be used to
    * store the planing results.  Otherwise false.
    */
-  bool RunPlanning(const std::string& test_case_name, int case_num);
+  bool RunPlanning(const std::string& test_case_name, int case_num,
+                   bool no_trajectory_point);
+
+  TrafficRuleConfig* GetTrafficRuleConfig(
+      const TrafficRuleConfig::RuleId& rule_id);
 
  protected:
-  void TrimPlanning(ADCTrajectory* origin);
+  void TrimPlanning(ADCTrajectory* origin, bool no_trajectory_point);
   bool SetUpAdapters();
   bool IsValidTrajectory(const ADCTrajectory& trajectory);
 
   Planning planning_;
   std::map<TrafficRuleConfig::RuleId, bool> rule_enabled_;
   ADCTrajectory adc_trajectory_;
-
-  TrafficRuleConfig* backside_vehicle_config_ = nullptr;
-  TrafficRuleConfig* change_lane_config_ = nullptr;
-  TrafficRuleConfig* crosswalk_config_ = nullptr;
-  TrafficRuleConfig* destination_config_ = nullptr;
-  TrafficRuleConfig* front_vehicle_config_ = nullptr;
-  TrafficRuleConfig* keep_clear_config_ = nullptr;
-  TrafficRuleConfig* referrence_line_end_config_ = nullptr;
-  TrafficRuleConfig* rerouting_config_ = nullptr;
-  TrafficRuleConfig* signal_light_config_ = nullptr;
-  TrafficRuleConfig* stop_sign_config_ = nullptr;
 };
 
 }  // namespace planning

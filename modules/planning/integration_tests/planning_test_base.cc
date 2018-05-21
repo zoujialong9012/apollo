@@ -108,40 +108,6 @@ void PlanningTestBase::SetUp() {
     if (iter != rule_enabled_.end()) {
       config.set_enabled(iter->second);
     }
-
-    // init traffic rule config files
-    switch (config.rule_id()) {
-      case TrafficRuleConfig::BACKSIDE_VEHICLE:
-        backside_vehicle_config_ = &config;
-        break;
-      case TrafficRuleConfig::CHANGE_LANE:
-        change_lane_config_ = &config;
-        break;
-      case TrafficRuleConfig::CROSSWALK:
-        crosswalk_config_ = &config;
-        break;
-      case TrafficRuleConfig::DESTINATION:
-        destination_config_ = &config;
-        break;
-      case TrafficRuleConfig::FRONT_VEHICLE:
-        front_vehicle_config_ = &config;
-        break;
-      case TrafficRuleConfig::KEEP_CLEAR:
-        keep_clear_config_ = &config;
-        break;
-      case TrafficRuleConfig::REFERENCE_LINE_END:
-        referrence_line_end_config_ = &config;
-        break;
-      case TrafficRuleConfig::REROUTING:
-        rerouting_config_ = &config;
-        break;
-      case TrafficRuleConfig::SIGNAL_LIGHT:
-        signal_light_config_ = &config;
-        break;
-      case TrafficRuleConfig::STOP_SIGN:
-        stop_sign_config_ = &config;
-        break;
-    }
   }
 }
 
@@ -162,7 +128,8 @@ void PlanningTestBase::UpdateData() {
   }
 }
 
-void PlanningTestBase::TrimPlanning(ADCTrajectory* origin) {
+void PlanningTestBase::TrimPlanning(ADCTrajectory* origin,
+                                    bool no_trajectory_point) {
   origin->clear_latency_stats();
   origin->clear_debug();
   origin->mutable_header()->clear_radar_timestamp();
@@ -170,10 +137,17 @@ void PlanningTestBase::TrimPlanning(ADCTrajectory* origin) {
   origin->mutable_header()->clear_timestamp_sec();
   origin->mutable_header()->clear_camera_timestamp();
   origin->mutable_header()->clear_sequence_num();
+
+  if (no_trajectory_point) {
+    origin->clear_total_path_length();
+    origin->clear_total_path_time();
+    origin->clear_trajectory_point();
+  }
 }
 
 bool PlanningTestBase::RunPlanning(const std::string& test_case_name,
-                                   int case_num) {
+                                   int case_num,
+                                   bool no_trajectory_point) {
   const std::string golden_result_file = apollo::common::util::StrCat(
       "result_", test_case_name, "_", case_num, ".pb.txt");
 
@@ -194,7 +168,7 @@ bool PlanningTestBase::RunPlanning(const std::string& test_case_name,
   }
 
   adc_trajectory_ = *trajectory_pointer;
-  TrimPlanning(&adc_trajectory_);
+  TrimPlanning(&adc_trajectory_, no_trajectory_point);
   if (FLAGS_test_update_golden_log) {
     AINFO << "The golden file is regenerated:" << full_golden_path;
     common::util::SetProtoToASCIIFile(adc_trajectory_, full_golden_path);
@@ -202,7 +176,7 @@ bool PlanningTestBase::RunPlanning(const std::string& test_case_name,
     ADCTrajectory golden_result;
     bool load_success =
         common::util::GetProtoFromASCIIFile(full_golden_path, &golden_result);
-    TrimPlanning(&golden_result);
+    TrimPlanning(&golden_result, no_trajectory_point);
     if (!load_success ||
         !common::util::IsProtoEqual(golden_result, adc_trajectory_)) {
       char tmp_fname[100] = "/tmp/XXXXXX";
@@ -254,6 +228,16 @@ bool PlanningTestBase::IsValidTrajectory(const ADCTrajectory& trajectory) {
     }
   }
   return true;
+}
+
+TrafficRuleConfig* PlanningTestBase::GetTrafficRuleConfig(
+    const TrafficRuleConfig::RuleId& rule_id) {
+  for (auto& config : *planning_.traffic_rule_configs_.mutable_config()) {
+    if (config.rule_id() == rule_id) {
+      return &config;
+    }
+  }
+  return nullptr;
 }
 
 }  // namespace planning

@@ -20,7 +20,7 @@ INCHINA="no"
 LOCAL_IMAGE="no"
 VERSION=""
 ARCH=$(uname -m)
-VERSION_X86_64="dev-x86_64-20180508_1647"
+VERSION_X86_64="dev-x86_64-20180530_1312"
 VERSION_AARCH64="dev-aarch64-20170927_1111"
 VERSION_OPT=""
 
@@ -266,7 +266,7 @@ function main(){
         -e DOCKER_USER=$USER \
         -e USER=$USER \
         -e DOCKER_USER_ID=$USER_ID \
-        -e DOCKER_GRP=$GRP \
+        -e DOCKER_GRP="$GRP" \
         -e DOCKER_GRP_ID=$GRP_ID \
         -e DOCKER_IMG=$IMG \
         $(local_volumes) \
